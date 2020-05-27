@@ -1,34 +1,35 @@
-var createError = require("http-errors");
-var express = require("express");
-var path = require("path");
-var cookieParser = require("cookie-parser");
-var logger = require("morgan");
+const createError = require("http-errors");
+const express = require("express");
+const path = require("path");
+const cookieParser = require("cookie-parser");
+const logger = require("morgan");
 const session = require("express-session");
 const MongoStore = require("connect-mongo")(session);
 const FacebookStrategy = require("passport-facebook").Strategy;
-var passport = require("passport");
-var mongoose = require("mongoose");
-var Schema = mongoose.Schema;
-var mongo = require("mongodb");
-var indexRouter = require("./routes/index");
-var usersRouter = require("./routes/users");
-var authRouter = require("./routes/auth");
-var compression = require("compression");
-var bodyParser = require("body-parser");
+const passport = require("passport");
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
+const mongo = require("mongodb");
+const indexRouter = require("./routes/index");
+const usersRouter = require("./routes/users");
+const authRouter = require("./routes/auth");
+const identifyRouter = require("./routes/identify");
+const compression = require("compression");
+const bodyParser = require("body-parser");
+
 //DB CONNECT
 mongoose.connect(
   "mongodb+srv://KSR:fifa2035@cluster0-pbtbp.mongodb.net/test?retryWrites=true&w=majority",
-  { useNewUrlParser: true }
+  { useNewUrlParser: true, useUnifiedTopology: true }
 );
 //
 var app = express();
 //SESSION
 app.use(
   session({
-    name: "babo",
     secret: "@#@$MYSIGN#@$#$",
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     store: new MongoStore({ mongooseConnection: mongoose.connection }),
     ttl: 14 * 24,
   })
@@ -78,9 +79,7 @@ passport.use(
     profile,
     done
   ) {
-    console.log(accessToken, profile);
     User.find({ facebookid: profile.id }, function (err, docs) {
-      console.log(docs[0]);
       if (docs[0]) {
         console.log("already there!", profile.id);
         done(null, docs);
@@ -112,6 +111,7 @@ app.use(compression());
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/auth", authRouter);
+app.use("/identify", identifyRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

@@ -4,6 +4,7 @@ var session = require("express-session");
 var passport = require("passport");
 const MongoStore = require("connect-mongo")(session);
 var mongoose = require("mongoose");
+var Schema = mongoose.Schema;
 
 var app = express();
 
@@ -12,8 +13,9 @@ router.get("/login", function (req, res, next) {
   res.render("login", {});
 });
 router.get("/logout", function (req, res, next) {
-  req.session.passport = undefined;
-  res.redirect("/");
+  req.session.destroy(function () {
+    res.redirect("/");
+  });
 });
 router.get(
   "/facebook",
